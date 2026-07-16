@@ -75,7 +75,16 @@ class VillaDetailView(generics.RetrieveAPIView):
 
 class AvailabilityCreateView(APIView):
 
-    permission_classes = [permissions.IsAuthenticated, IsHost]
+
+    def get_permissions(self):
+        
+        if self.request.method == 'POST':
+
+            return [permissions.IsAuthenticated(), IsHost()]
+        
+        return [permissions.IsAuthenticated()]
+    
+
 
     def post(self, request, villa_id):
 
@@ -101,3 +110,19 @@ class AvailabilityCreateView(APIView):
 
         serializer = AvailabilitySerializer(listt, many=True)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+
+
+    def get(self, request, villa_id):
+
+        try:
+            villa = Villa.objects.get(id = villa_id)
+
+        except (Villa.DoesNotExist):
+            return Response({'detail': 'Villa not found.'}, status = status.HTTP_404_NOT_FOUND)
+        
+        avail_list = Availability.objects.filter(villa = villa, is_available = True)
+
+        serializer = AvailabilitySerializer(avail_list, many = True)
+
+        return Response(serializer.data, status = status.HTTP_200_OK)

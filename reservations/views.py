@@ -80,3 +80,24 @@ class ReservationListCreateView(generics.ListCreateAPIView):
     
         serializer = self.get_serializer(reservation)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+
+class VillaReservationsView(generics.ListAPIView):
+
+    serializer_class = ReservationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        
+        villa_id = self.kwargs.get('villa_id')
+
+        try:
+            villa = Villa.objects.get(id = villa_id)
+        
+        except (Villa.DoesNotExist):
+            return Reservation.objects.none()
+
+        if(villa.host != self.request.user):
+            return Reservation.objects.none()
+        
+        return Reservation.objects.filter(villa = villa)

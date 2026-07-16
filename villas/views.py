@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Availability
 
+from datetime import date
 
 class VillaListCreateView(generics.ListCreateAPIView):
 
@@ -23,7 +24,30 @@ class VillaListCreateView(generics.ListCreateAPIView):
         if city:
 
             queryset = queryset.filter(city__iexact=city)
-        
+
+        strcheck_in = self.request.query_params.get('check_in')
+        strcheck_out = self.request.query_params.get('check_out')
+
+        if(strcheck_in and strcheck_out):
+
+            date_in = date.fromisoformat(strcheck_in)
+            date_out = date.fromisoformat(strcheck_out)
+
+            nights = (date_out - date_in).days
+
+            id_avail_villa = []
+
+            for villa in queryset:
+
+                avail_days = Availability.objects.filter(villa = villa, date__gte = date_in, date__lt = date_out, is_available = True).count()
+
+                if(avail_days == nights):
+                    id_avail_villa.append(villa.id)
+
+            queryset = queryset.filter(id__in = id_avail_villa)
+
+
+
         return queryset
     
     def get_permissions(self):

@@ -17,7 +17,7 @@ class ReservationListCreateView(generics.ListCreateAPIView):
     
     def create(self, request, *args, **kwargs):
 
-        villa_id = request.data.get('villa')
+        villa_id = request.data.get('villa_id')
         check_in_string = request.data.get('check_in')
         check_out_str = request.data.get('check_out')
 
